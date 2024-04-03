@@ -9,6 +9,7 @@ public static class Comparator
         var octetsA = a.Trim().Split('.');
         var octetsB = b.Trim().Split('.');
         
+        // TODO: попробовать импрувнуть эту шнягу
         if (octetsA.SequenceEqual(octetsB))
         {
             return 0;
