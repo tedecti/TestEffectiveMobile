@@ -1,6 +1,6 @@
 ﻿using static System.Int32;
 
-namespace TestEffectiveMobile;
+namespace TestEffectiveMobile.SortingHandlers;
 
 public static class Comparator
 {
