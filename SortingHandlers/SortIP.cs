@@ -1,4 +1,4 @@
-﻿namespace TestEffectiveMobile.Sorting;
+﻿namespace TestEffectiveMobile.SortingHandlers;
 
 public static class SortIp
 {
