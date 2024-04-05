@@ -1,46 +1,49 @@
-﻿using TestEffectiveMobile.FilterHandlers;
+﻿    using TestEffectiveMobile.FilterHandlers;
 
-namespace TestEffectiveMobile.FileHandlers;
+    namespace TestEffectiveMobile.FileHandlers;
 
-public static class WriteFile
-{
-    public static void WriteIp(string inputPath, string outputPath, string addressStart = null, int? addressMask = null, string timeStart = null, string timeEnd = null)
+    public static class WriteFile
     {
-        try
+        public static void WriteIp(string inputPath, string outputPath, string addressStart = null, int? addressMask = null, string timeStart = null, string timeEnd = null)
         {
-            if (!File.Exists(inputPath))
+            try
             {
-                Console.WriteLine("Input file does not exist.");
-                return;
-            }
-            var ipAddresses = ReadFile.GetIpAddresses(inputPath);
-            var requestTimes = ReadFile.GetRequestTimes(inputPath);
-
-            var filteredAddresses = FilterIp.FilterIpAddresses(ipAddresses, requestTimes, addressStart, addressMask, timeStart, timeEnd);
-                
-            // Подготовка данных к записи: сгруппировать по IP и подсчитать количество, сохраняя временные метки
-            var counts = filteredAddresses
-                .GroupBy(ip => ip)
-                .Select(group =>
+                if (!File.Exists(inputPath))
                 {
-                    // Извлечение соответствующих временных меток для каждого IP-адреса
-                    var times = group.Select(g => requestTimes[ipAddresses.IndexOf(g)])
-                        .Distinct()
-                        .OrderBy(t => t)
-                        .ToList();
-                    var timeString = string.Join(", ", times);
-                    return $"{group.Key} [{timeString}] {group.Count()}";
-                })
-                .ToArray();
+                    Console.WriteLine("Input file does not exist.");
+                    return;
+                }
+                var ipAddresses = ReadFile.GetIpAddressesWithSubnetMasks(inputPath);
+                
+                var requestTimes = ReadFile.GetRequestTimes(inputPath);
+                
+                var filteredAddressesWithMasks = FilterIp.FilterIpAddresses(ipAddresses, requestTimes, addressStart, addressMask, timeStart, timeEnd);
+            
+                var counts = filteredAddressesWithMasks
+                    .GroupBy(ip => ip)
+                    .Select(group =>
+                    {
+                        var ip = group.Key;
+                        var index = ipAddresses.IndexOf(ip);
+                       
+            
+                        var times = group.Select(g => requestTimes[ipAddresses.IndexOf(g)])
+                            .Distinct()
+                            .OrderBy(t => t)
+                            .ToList();
+                        var timeString = string.Join(", ", times);
+                        return $"{ip} [{timeString}] {group.Count()}";
+                    })
+                    .ToArray();
 
-            File.WriteAllLines(outputPath, counts);
-            Console.WriteLine("File has been written successfully.");
+                File.WriteAllLines(outputPath, counts);
+                Console.WriteLine("File has been written successfully.");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"An error occurred: {e.Message}");
+                throw;
+            }
         }
-        catch (Exception e)
-        {
-            Console.WriteLine($"An error occurred: {e.Message}");
-            throw;
-        }
+
     }
-
-}
