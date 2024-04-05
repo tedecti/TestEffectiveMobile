@@ -1,22 +1,10 @@
-﻿namespace TestEffectiveMobile.FileHandlers;
+﻿using TestEffectiveMobile.FilterHandlers;
+
+namespace TestEffectiveMobile.FileHandlers;
 
 public static class WriteFile
 {
-    private static void WriteNewFile(string path, string[] lines)
-    {
-        try
-        {
-            File.WriteAllLines(path, lines);
-            Console.WriteLine("File has been written successfully.");
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine($"An error occurred while writing to the file: {e.Message}");
-            throw;
-        }
-    }
-
-    public static void WriteIpCountsToFileWithTime(string inputPath, string outputPath)
+    public static void WriteIp(string inputPath, string outputPath, string addressStart = null, int? addressMask = null, string timeStart = null, string timeEnd = null)
     {
         try
         {
@@ -25,36 +13,27 @@ public static class WriteFile
                 Console.WriteLine("Input file does not exist.");
                 return;
             }
+            var ipAddresses = ReadFile.GetIpAddresses(inputPath);
+            var requestTimes = ReadFile.GetRequestTimes(inputPath);
 
-            var lines = File.ReadAllLines(inputPath);
-
-            var ipDetails = new Dictionary<string, List<string>>();
-
-            foreach (var line in lines)
-            {
-                var parts = line.Split(' ');
-                if (parts.Length == 2)
+            var filteredAddresses = FilterIp.FilterIpAddresses(ipAddresses, requestTimes, addressStart, addressMask, timeStart, timeEnd);
+                
+            // Подготовка данных к записи: сгруппировать по IP и подсчитать количество, сохраняя временные метки
+            var counts = filteredAddresses
+                .GroupBy(ip => ip)
+                .Select(group =>
                 {
-                    if (!ipDetails.ContainsKey(parts[0]))
-                    {
-                        ipDetails[parts[0]] = new List<string> { parts[1] };
-                    }
-                    else
-                    {
-                        ipDetails[parts[0]].Add(parts[1]);
-                    }
-                }
-            }
-            
-            var linesToWrite = ipDetails.Select(kvp =>
-            {
-                var ip = kvp.Key;
-                var times = string.Join(", ", kvp.Value);
-                var count = kvp.Value.Count;
-                return $"{ip} [{times}] {count}";
-            }).ToArray();
+                    // Извлечение соответствующих временных меток для каждого IP-адреса
+                    var times = group.Select(g => requestTimes[ipAddresses.IndexOf(g)])
+                        .Distinct()
+                        .OrderBy(t => t)
+                        .ToList();
+                    var timeString = string.Join(", ", times);
+                    return $"{group.Key} [{timeString}] {group.Count()}";
+                })
+                .ToArray();
 
-            WriteNewFile(outputPath, linesToWrite);
+            File.WriteAllLines(outputPath, counts);
             Console.WriteLine("File has been written successfully.");
         }
         catch (Exception e)
@@ -63,4 +42,5 @@ public static class WriteFile
             throw;
         }
     }
+
 }
