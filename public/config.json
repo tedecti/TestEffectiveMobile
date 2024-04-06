@@ -1,0 +1,8 @@
+﻿{
+  "FileLog": "../../../public/IP_Addresses.txt",
+  "FileOutput": "../../../public/newFile.txt",
+  "AddressStart": "72.74.7.144",
+  "AddressMask": 24,
+  "TimeStart": "11.03.2024",
+  "TimeEnd": "29.03.2024"
+}
