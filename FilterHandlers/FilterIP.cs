@@ -1,6 +1,5 @@
 ﻿using System.Globalization;
 using System.Net;
-using TestEffectiveMobile.FileHandlers;
 
 namespace TestEffectiveMobile.FilterHandlers;
 
@@ -43,8 +42,7 @@ public static class FilterIp
                     return currentTime >= startTime && currentTime <= endTime;
                 });
             }
-
-            // Возвращаем IP-адреса с масками подсети после всех фильтраций
+            
             return filtered.Select(x => x.IpWithMask).ToList();
         }
 
